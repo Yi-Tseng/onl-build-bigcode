@@ -1,10 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 ################################################################
 #
 #        Copyright 2013, Big Switch Networks, Inc.
 #
 # Licensed under the Eclipse Public License, Version 1.0 (the
-# "License"); you may not use this file except in compliance
+# "License") you may not use this file except in compliance
 # with the License. You may obtain a copy of the License at
 #
 #        http://www.eclipse.org/legal/epl-v10.html
@@ -23,12 +23,28 @@
 # define in the given source files.
 #
 ################################################################
-import os
 import sys
 import re
-import pprint
-import infra
-import wod
+import os
+
+# import from wod
+def write_on_diff(fname, new, msg=True):
+    if type(new) == bytes:
+        new = new.decode("utf8")
+    existing = None
+    if os.path.exists(fname):
+        with open(fname, "r") as f:
+            existing=f.read()
+
+    if new == existing:
+        if msg:
+            print("%s: no changes." % fname)
+    else:
+        if msg:
+            print("%s: updated." % fname)
+        with open(fname, "w") as f:
+            f.write(new)
+
 
 #
 # Find all ucli command handlers in the given source file.
@@ -39,18 +55,18 @@ source = None
 with open(sys.argv[1], "r") as f:
     source = f.read()
 
-matches = re.findall("(?P<condition>#if.*?\n)?(?:\s*static\s*)?ucli_status_t\s+(?P<function>[_a-zA-Z]\w*)\(\s*ucli_context_t\s*\*\s*[_a-zA-Z]\w*\s*\)", source);
+matches = re.findall("(?P<condition>#if.*?\n)?(?:\s*static\s*)?ucli_status_t\s+(?P<function>[_a-zA-Z]\w*)\(\s*ucli_context_t\s*\*\s*[_a-zA-Z]\w*\s*\)", source)
 
 modules = {}
 for m in matches:
     # Handler naming format is:
     #
     # [prefix]_ucli_[moduleName]_[command]
-    fields = m[1].split("_");
+    fields = m[1].split("_")
     prefix = fields[0]
     if fields[1] != "ucli":
         raise Exception("Bad format for handler name: %s" % (m))
-    module = fields[2];
+    module = fields[2]
 
     if not (prefix, module) in modules:
         modules[(prefix, module)] = []
@@ -80,7 +96,7 @@ s += """
 """
 
 
-for ((p,m), lst) in modules.iteritems():
+for ((p,m), lst) in modules.items():
     s += "static ucli_command_handler_f %s_ucli_%s_handlers__[] = \n" % (p,m)
     s += "{\n"
     for h in lst:
@@ -91,7 +107,7 @@ for ((p,m), lst) in modules.iteritems():
             s += "#endif\n"
 
     s += "    NULL\n"
-    s += "};\n"
+    s += "}\n"
 s += "/******************************************************************************/\n"
 s += end
 
@@ -100,7 +116,7 @@ rstart = re.sub("\*", "\\\*", start)
 rend = re.sub("\*", "\\\*", end)
 expr = rstart + ".*" + rend
 source = re.sub(expr, s, source, flags=re.DOTALL)
-wod.write_on_diff(sys.argv[1], source)
+write_on_diff(sys.argv[1], source)
 
 
 

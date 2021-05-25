@@ -1,10 +1,10 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 ################################################################
 #
 #        Copyright 2013, Big Switch Networks, Inc.
 #
 # Licensed under the Eclipse Public License, Version 1.0 (the
-# "License"); you may not use this file except in compliance
+# "License") you may not use this file except in compliance
 # with the License. You may obtain a copy of the License at
 #
 #        http://www.eclipse.org/legal/epl-v10.html
@@ -33,7 +33,7 @@ import pyvpi
 class Vpi(object):
 
     def __init__(self, createSpec):
-        self.v = pyvpi.Create(createSpec);
+        self.v = pyvpi.Create(createSpec)
 
     def NameGet(self):
         return pyvpi.NameGet(self.v)
@@ -42,7 +42,7 @@ class Vpi(object):
         return pyvpi.NameSet(self.v, newName)
 
     def GetCreateSpec(self):
-        return PyPVI.GetCreateSpec(self.v)
+        return pyvpi.GetCreateSpec(self.v)
 
     def DescriptorGet(self):
         return pyvpi.DescriptorGet(self.v)
@@ -123,10 +123,10 @@ class Vpi(object):
         return pyvpi.Ioctl(self.v, cmd, data)
 
     def Recv(self, block):
-        return pyvpi.Recv(self.v, block);
+        return pyvpi.Recv(self.v, block)
 
     def Drain(self):
-        return pyvpi.Drain(self.v);
+        return pyvpi.Drain(self.v)
 
     def ConfigShow(self):
         return pyvpi.ConfigShow(self.v)
@@ -142,17 +142,17 @@ class VpiBridge(object):
         if isinstance(v1In, Vpi):
             self.v1 = v1In
         else:
-            self.v1 = Vpi(v1In);
+            self.v1 = Vpi(v1In)
 
         if isinstance(v2In, Vpi):
             self.v2 = v2In
         else:
             self.v2 = Vpi(v2In)
 
-        print self.v1.NameGet()
-        print self.v2.NameGet()
+        print(self.v1.NameGet())
+        print(self.v2.NameGet())
 
-        self.bridge = pyvpi.BridgeCreate(self.v1.v, self.v2.v);
+        self.bridge = pyvpi.BridgeCreate(self.v1.v, self.v2.v)
 
 
     def Start(self):
@@ -168,18 +168,18 @@ class VpiTool(object):
         pass
 
     def Bridge(self, v1, v2):
-        rv = VpiBridge(v1, v2);
-        rv.Start();
-        return rv;
+        rv = VpiBridge(v1, v2)
+        rv.Start()
+        return rv
 
     def Dump(self, v1):
-        v = Vpi(v1);
-        count = 0;
+        v = Vpi(v1)
+        count = 0
         while(True):
-            data = v.Recv(True);
-            print "[%.3d]" % count
-            print data
-            count = count+1;
+            data = v.Recv(True)
+            print("[%.3d]" % count)
+            print(data)
+            count = count+1
 
     def Send(self, v1, data):
         v = Vpi(v1)

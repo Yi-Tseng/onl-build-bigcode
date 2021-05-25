@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 ################################################################
 #
 #        Copyright 2013, Big Switch Networks, Inc.
@@ -71,12 +71,26 @@
 #         1. Allow handlers to be scraped from multiple files.
 #         2. Fix embarassingness-ness of it.
 ################################################################
-import os
-import sys
 import re
-import pprint
-import infra
-import wod
+import os
+
+# import from wod
+def write_on_diff(fname, new, msg=True):
+    if type(new) == bytes:
+        new = new.decode("utf8")
+    existing = None
+    if os.path.exists(fname):
+        with open(fname, "r") as f:
+            existing=f.read()
+
+    if new == existing:
+        if msg:
+            print("%s: no changes." % fname)
+    else:
+        if msg:
+            print("%s: updated." % fname)
+        with open(fname, "w") as f:
+            f.write(new)
 
 class UcliGenerator(object):
     def __init__(self):
@@ -152,7 +166,7 @@ class UcliGenerator(object):
                 name = "%s__%s" % (parent, key)
 
             s += 'ucli_node_t* %s__node__ = NULL;\n' % (name)
-            for(k, v) in value.iteritems():
+            for(k, v) in value.items():
                 s += self.__emit_definitions(k, v, name)
         else:
             raise Exception(type(value))
@@ -171,7 +185,7 @@ class UcliGenerator(object):
             else:
                 name = "%s__%s" % (parent, key)
             s += '    if(%s__node__ == NULL) %s__node__ = ucli_node_create("%s", NULL, NULL);\n' % (name, name, key.replace("_ucli", ""))
-            for(k, v) in value.iteritems():
+            for(k, v) in value.items():
                 s += self.__emit_inits(k, v, name)
 
         return s
@@ -189,7 +203,7 @@ class UcliGenerator(object):
                 name = "%s__%s" % (parent, key)
             if parent:
                 s += "    ucli_node_subnode_add(%s__node__, %s__%s__node__);\n" % (parent, parent, key)
-            for(k, v) in value.iteritems():
+            for(k, v) in value.items():
                 s += self.__emit_tree(k, v, name)
         else:
             raise Exception(type(value))
@@ -198,15 +212,15 @@ class UcliGenerator(object):
 
     def generate_str(self):
         s = ""
-        for(k, v) in self.nodes.iteritems():
+        for(k, v) in self.nodes.items():
             s += self.__emit_definitions(k, v, None)
         s += "static ucli_node_t* __ucli_auto_init__(void)\n"
         s += "{\n"
-        for(k, v) in self.nodes.iteritems():
+        for(k, v) in self.nodes.items():
             s += self.__emit_inits(k, v, None)
-        for(k, v) in self.nodes.iteritems():
+        for(k, v) in self.nodes.items():
             s += self.__emit_tree(k, v, None)
-        s += "    return %s__node__;\n" % self.nodes.keys()[0]
+        s += "    return %s__node__;\n" % list(self.nodes.keys())[0]
         s += "}\n"
         return s
 
@@ -236,9 +250,9 @@ class UcliGenerator(object):
         source = re.sub(expr, s, source, flags=re.DOTALL)
 
         if stdout:
-            print source
+            print(source)
         else:
-            wod.write_on_diff(src, source, msg=False)
+            write_on_diff(src, source, msg=False)
 
 if __name__ == '__main__':
     import argparse
